@@ -1,0 +1,563 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Grupo 5: Verbos en -UIR (Añaden Y)</title>
+  <style>
+    :root {
+      --table-bg: #2d3748;
+      --card-bg: #ffffff;
+      --text-main: #1a202c;
+      --yellow-piece: #facc15;
+      --yellow-border: #eab308;
+      --green-piece: #22c55e;
+      --green-border: #15803d;
+      --special-piece: #10b981;
+      --special-border: #047857;
+      --pronoun-color: #d9381e;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+    }
+
+    body {
+      background-color: var(--table-bg);
+      min-height: 100vh;
+      padding: 20px;
+      color: var(--text-main);
+    }
+
+    h1 {
+      text-align: center;
+      color: #ffffff;
+      margin-bottom: 5px;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      font-size: 1.8rem;
+    }
+
+    .subtitle {
+      text-align: center;
+      color: #e2e8f0;
+      margin-bottom: 25px;
+      font-size: 1.05rem;
+    }
+
+    /* ESTRUCTURA PRINCIPAL (MESA A LA IZQUIERDA, CONJUGACIÓN A LA DERECHA) */
+    .main-layout {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 20px;
+      max-width: 1300px;
+      margin: 0 auto;
+    }
+
+    /* MESA DE VERBOS (IZQUIERDA) */
+    .desk-area {
+      background-color: #4a5568;
+      border: 4px solid #2d3748;
+      border-radius: 20px;
+      padding: 20px;
+      min-height: 550px;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 12px;
+      align-content: flex-start;
+      justify-content: center;
+      box-shadow: inset 0 0 20px rgba(0,0,0,0.3);
+    }
+
+    .card-wrapper {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 5px;
+    }
+
+    .card-container {
+      width: 110px;
+      height: 110px;
+      perspective: 1000px;
+      cursor: pointer;
+    }
+
+    .card-inner {
+      position: relative;
+      width: 100%;
+      height: 100%;
+      text-align: center;
+      transition: transform 0.6s cubic-bezier(0.4, 0.2, 0.2, 1);
+      transform-style: preserve-3d;
+      border-radius: 12px;
+    }
+
+    .card-container.flipped .card-inner {
+      transform: rotateY(180deg);
+    }
+
+    .card-container.active .card-front,
+    .card-container.active .card-back {
+      border: 3px solid #10b981;
+      box-shadow: 0 0 12px rgba(16, 185, 129, 0.8);
+    }
+
+    .card-front, .card-back {
+      position: absolute;
+      width: 100%;
+      height: 100%;
+      -webkit-backface-visibility: hidden;
+      backface-visibility: hidden;
+      border-radius: 12px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 6px;
+      box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+      user-select: none;
+    }
+
+    .card-front {
+      background-color: #ffffff;
+      color: var(--text-main);
+      font-weight: 800;
+      font-size: 0.9rem;
+      border: 2px solid #cbd5e1;
+    }
+
+    .card-back {
+      background-color: #f1f5f9;
+      color: var(--text-main);
+      transform: rotateY(180deg);
+      border: 2px solid #cbd5e1;
+    }
+
+    .card-back-icon {
+      font-size: 1.8rem;
+      margin-bottom: 2px;
+    }
+
+    .card-back-text {
+      font-size: 0.72rem;
+      font-weight: 800;
+      color: #0f172a;
+      text-transform: uppercase;
+    }
+
+    .select-btn {
+      background-color: #10b981;
+      color: #ffffff;
+      border: none;
+      padding: 4px 10px;
+      border-radius: 6px;
+      font-size: 0.75rem;
+      font-weight: bold;
+      cursor: pointer;
+      transition: background-color 0.2s;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.15);
+    }
+
+    .select-btn:hover {
+      background-color: #059669;
+    }
+
+    /* ÁREA DE TRABAJO (CONJUGADOR A LA DERECHA) */
+    .workspace {
+      background-color: var(--card-bg);
+      border-radius: 20px;
+      padding: 25px;
+      box-shadow: 0 10px 25px rgba(0,0,0,0.25);
+      display: flex;
+      flex-direction: column;
+    }
+
+    .verb-header {
+      text-align: center;
+      margin-bottom: 15px;
+      padding-bottom: 10px;
+      border-bottom: 2px solid #e5e7eb;
+    }
+
+    .selected-title {
+      font-size: 1.8rem;
+      font-weight: 900;
+      color: var(--text-main);
+    }
+
+    .stem-info {
+      font-size: 0.95rem;
+      color: #047857;
+      font-weight: 700;
+      margin-top: 4px;
+    }
+
+    .note-badge {
+      display: inline-block;
+      margin-top: 6px;
+      background-color: #d1fae5;
+      color: #065f46;
+      padding: 4px 10px;
+      border-radius: 6px;
+      font-size: 0.85rem;
+      font-weight: 700;
+      border: 1px solid #a7f3d0;
+    }
+
+    /* GRID DE FILAS DE CONJUGACIÓN */
+    .conjugation-grid {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    .row {
+      display: grid;
+      grid-template-columns: 140px 1fr auto;
+      align-items: center;
+      gap: 10px;
+      background-color: #f8fafc;
+      padding: 8px 15px;
+      border-radius: 12px;
+      box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+    }
+
+    .pronoun {
+      font-size: 1.05rem;
+      font-weight: 800;
+      color: var(--pronoun-color);
+    }
+
+    /* PUZZLE SVG */
+    .puzzle-box {
+      cursor: pointer;
+    }
+
+    .puzzle-svg {
+      display: block;
+      overflow: visible;
+      filter: drop-shadow(0px 3px 4px rgba(0, 0, 0, 0.12));
+    }
+
+    .text-stem {
+      font-family: 'Segoe UI', system-ui, sans-serif;
+      font-weight: 900;
+      font-size: 18px;
+      dominant-baseline: central;
+      text-anchor: middle;
+    }
+
+    .text-ending {
+      fill: #ffffff;
+      font-family: 'Segoe UI', system-ui, sans-serif;
+      font-weight: 900;
+      font-size: 18px;
+      dominant-baseline: central;
+      text-anchor: middle;
+      transition: opacity 0.25s ease;
+    }
+
+    .text-hidden {
+      opacity: 0;
+    }
+
+    /* BOTÓN DE AUDIO */
+    .audio-btn {
+      background: #f3f4f6;
+      border: 2px solid #e5e7eb;
+      width: 38px;
+      height: 38px;
+      border-radius: 50%;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.1rem;
+      transition: all 0.2s;
+    }
+
+    .audio-btn:hover {
+      background-color: #fde047;
+      border-color: #eab308;
+      transform: scale(1.1);
+    }
+
+    @media (max-width: 900px) {
+      .main-layout { grid-template-columns: 1fr; }
+      .desk-area { min-height: auto; }
+    }
+  </style>
+</head>
+<body>
+
+  <h1>GRUPO 5: Verbos terminados en -UIR</h1>
+  <div class="subtitle">Añaden una <strong>Y</strong> entre la raíz y la terminación (excepto Nosotros y Vosotros)[cite: 14]</div>
+
+  <div class="main-layout">
+    
+    <!-- MESA DE VERBOS (IZQUIERDA) -->
+    <div class="desk-area" id="deskArea"></div>
+
+    <!-- CONJUGACIÓN (DERECHA) -->
+    <div class="workspace">
+      <div class="verb-header">
+        <div class="selected-title" id="selectedVerbTitle">CONSTRUIR</div>
+        <div class="stem-info" id="selectedVerbInfo">Adición de consonante: +Y</div>
+        <div class="note-badge" id="selectedVerbBadge">Se añade Y en: Yo, Tú, Él/Ella, Ellos/as</div>
+      </div>
+
+      <div class="conjugation-grid" id="conjugationGrid"></div>
+    </div>
+
+  </div>
+
+  <script>
+    const verbosGrupo5 = [
+      {
+        verbo: "CONSTRUIR",
+        ingles: "To build / construct",
+        icono: "🏗️",
+        info: "Añade Y en las formas con cambio: construy-",
+        conjugaciones: [
+          { pronombre: "Yo", raiz: "construy", terminacion: "-o", esCambio: true },
+          { pronombre: "Tú", raiz: "construy", terminacion: "-es", esCambio: true },
+          { pronombre: "Él / Ella / Usted", raiz: "construy", terminacion: "-e", esCambio: true },
+          { pronombre: "Nosotros/as", raiz: "constru", terminacion: "-imos", esCambio: false },
+          { pronombre: "Vosotros/as", raiz: "constru", terminacion: "-ís", esCambio: false },
+          { pronombre: "Ellos / Ellas / Ustedes", raiz: "construy", terminacion: "-en", esCambio: true }
+        ]
+      },
+      {
+        verbo: "HUIR",
+        ingles: "To flee / run away",
+        icono: "🏃",
+        info: "Añade Y en las formas con cambio: huy-",
+        conjugaciones: [
+          { pronombre: "Yo", raiz: "huy", terminacion: "-o", esCambio: true },
+          { pronombre: "Tú", raiz: "huy", terminacion: "-es", esCambio: true },
+          { pronombre: "Él / Ella / Usted", raiz: "huy", terminacion: "-e", esCambio: true },
+          { pronombre: "Nosotros/as", raiz: "hu", terminacion: "-imos", esCambio: false },
+          { pronombre: "Vosotros/as", raiz: "hu", terminacion: "-ís", esCambio: false },
+          { pronombre: "Ellos / Ellas / Ustedes", raiz: "huy", terminacion: "-en", esCambio: true }
+        ]
+      },
+      {
+        verbo: "DESTRUIR",
+        ingles: "To destroy",
+        icono: "💥",
+        info: "Añade Y en las formas con cambio: destruy-",
+        conjugaciones: [
+          { pronombre: "Yo", raiz: "destruy", terminacion: "-o", esCambio: true },
+          { pronombre: "Tú", raiz: "destruy", terminacion: "-es", esCambio: true },
+          { pronombre: "Él / Ella / Usted", raiz: "destruy", terminacion: "-e", esCambio: true },
+          { pronombre: "Nosotros/as", raiz: "destru", terminacion: "-imos", esCambio: false },
+          { pronombre: "Vosotros/as", raiz: "destru", terminacion: "-ís", esCambio: false },
+          { pronombre: "Ellos / Ellas / Ustedes", raiz: "destruy", terminacion: "-en", esCambio: true }
+        ]
+      },
+      {
+        verbo: "INCLUIR",
+        ingles: "To include",
+        icono: "➕",
+        info: "Añade Y en las formas con cambio: incluy-",
+        conjugaciones: [
+          { pronombre: "Yo", raiz: "incluy", terminacion: "-o", esCambio: true },
+          { pronombre: "Tú", raiz: "incluy", terminacion: "-es", esCambio: true },
+          { pronombre: "Él / Ella / Usted", raiz: "incluy", terminacion: "-e", esCambio: true },
+          { pronombre: "Nosotros/as", raiz: "influ", terminacion: "-imos", esCambio: false },
+          { pronombre: "Vosotros/as", raiz: "inclu", terminacion: "-ís", esCambio: false },
+          { pronombre: "Ellos / Ellas / Ustedes", raiz: "incluy", terminacion: "-en", esCambio: true }
+        ]
+      },
+      {
+        verbo: "INFLUIR",
+        ingles: "To influence",
+        icono: "🌟",
+        info: "Añade Y en las formas con cambio: influy-",
+        conjugaciones: [
+          { pronombre: "Yo", raiz: "influy", terminacion: "-o", esCambio: true },
+          { pronombre: "Tú", raiz: "influy", terminacion: "-es", esCambio: true },
+          { pronombre: "Él / Ella / Usted", raiz: "influy", terminacion: "-e", esCambio: true },
+          { pronombre: "Nosotros/as", raiz: "influ", terminacion: "-imos", esCambio: false },
+          { pronombre: "Vosotros/as", raiz: "influ", terminacion: "-ís", esCambio: false },
+          { pronombre: "Ellos / Ellas / Ustedes", raiz: "influy", terminacion: "-en", esCambio: true }
+        ]
+      },
+      {
+        verbo: "SUSTITUIR",
+        ingles: "To substitute / replace",
+        icono: "🔄",
+        info: "Añade Y en las formas con cambio: sustituy-",
+        conjugaciones: [
+          { pronombre: "Yo", raiz: "sustituy", terminacion: "-o", esCambio: true },
+          { pronombre: "Tú", raiz: "sustituy", terminacion: "-es", esCambio: true },
+          { pronombre: "Él / Ella / Usted", raiz: "sustituy", terminacion: "-e", esCambio: true },
+          { pronombre: "Nosotros/as", raiz: "sustitu", terminacion: "-imos", esCambio: false },
+          { pronombre: "Vosotros/as", raiz: "sustitu", terminacion: "-ís", esCambio: false },
+          { pronombre: "Ellos / Ellas / Ustedes", raiz: "sustituy", terminacion: "-en", esCambio: true }
+        ]
+      },
+      {
+        verbo: "CONCLUIR",
+        ingles: "To conclude / finish",
+        icono: "🏁",
+        info: "Añade Y en las formas con cambio: concluy-",
+        conjugaciones: [
+          { pronombre: "Yo", raiz: "concluy", terminacion: "-o", esCambio: true },
+          { pronombre: "Tú", raiz: "concluy", terminacion: "-es", esCambio: true },
+          { pronombre: "Él / Ella / Usted", raiz: "concluy", terminacion: "-e", esCambio: true },
+          { pronombre: "Nosotros/as", raiz: "conclu", terminacion: "-imos", esCambio: false },
+          { pronombre: "Vosotros/as", raiz: "conclu", terminacion: "-ís", esCambio: false },
+          { pronombre: "Ellos / Ellas / Ustedes", raiz: "concluy", terminacion: "-en", esCambio: true }
+        ]
+      },
+      {
+        verbo: "DISTRIBUIR",
+        ingles: "To distribute",
+        icono: "📦",
+        info: "Añade Y en las formas con cambio: distribuy-",
+        conjugaciones: [
+          { pronombre: "Yo", raiz: "distribuy", terminacion: "-o", esCambio: true },
+          { pronombre: "Tú", raiz: "distribuy", terminacion: "-es", esCambio: true },
+          { pronombre: "Él / Ella / Usted", raiz: "distribuy", terminacion: "-e", esCambio: true },
+          { pronombre: "Nosotros/as", raiz: "distribu", terminacion: "-imos", esCambio: false },
+          { pronombre: "Vosotros/as", raiz: "distribu", terminacion: "-ís", esCambio: false },
+          { pronombre: "Ellos / Ellas / Ustedes", raiz: "distribuy", terminacion: "-en", esCambio: true }
+        ]
+      }
+    ];
+
+    let selectedVerb = verbosGrupo5[0];
+
+    function renderDesk() {
+      const desk = document.getElementById('deskArea');
+      desk.innerHTML = '';
+
+      verbosGrupo5.forEach((v) => {
+        const wrapper = document.createElement('div');
+        wrapper.className = 'card-wrapper';
+
+        const container = document.createElement('div');
+        container.className = 'card-container' + (v.verbo === selectedVerb.verbo ? ' active' : '');
+
+        container.innerHTML = `
+          <div class="card-inner">
+            <div class="card-front">
+              <span>${v.verbo}</span>
+            </div>
+            <div class="card-back">
+              <span class="card-back-icon">${v.icono}</span>
+              <span class="card-back-text">${v.ingles}</span>
+            </div>
+          </div>
+        `;
+
+        container.onclick = () => {
+          container.classList.toggle('flipped');
+        };
+
+        const selectBtn = document.createElement('button');
+        selectBtn.className = 'select-btn';
+        selectBtn.textContent = 'Conjugar';
+        selectBtn.onclick = (e) => {
+          e.stopPropagation();
+          selectedVerb = v;
+          renderDesk();
+          updateWorkspace();
+        };
+
+        wrapper.appendChild(container);
+        wrapper.appendChild(selectBtn);
+        desk.appendChild(wrapper);
+      });
+    }
+
+    function updateWorkspace() {
+      document.getElementById('selectedVerbTitle').textContent = selectedVerb.verbo;
+      document.getElementById('selectedVerbInfo').textContent = selectedVerb.info;
+      
+      const badge = document.getElementById('selectedVerbBadge');
+      badge.textContent = 'Añade Y en: Yo, Tú, Él/Ella, Ellos/as';
+
+      const grid = document.getElementById('conjugationGrid');
+      grid.innerHTML = '';
+
+      selectedVerb.conjugaciones.forEach((item, i) => {
+        const fullWord = item.raiz + item.terminacion.replace('-', '');
+
+        let stemFill = "#10b981";
+        let stemStroke = "#047857";
+
+        if (!item.esCambio) {
+          stemFill = "#e2e8f0";
+          stemStroke = "#94a3b8";
+        }
+
+        const row = document.createElement('div');
+        row.className = 'row';
+
+        row.innerHTML = `
+          <div class="pronoun">${item.pronombre}</div>
+          <div class="puzzle-box" onclick="togglePiece(${i})">
+            <svg class="puzzle-svg" width="240" height="48" viewBox="0 0 240 48">
+              <!-- Pieza Raíz -->
+              <path d="M 5,4 L 110,4 
+                       C 110,13 123,13 123,4 
+                       L 132,4 
+                       A 4,4 0 0,1 136,8 
+                       L 136,17 
+                       C 146,17 146,30 136,30 
+                       L 136,40 
+                       A 4,4 0 0,1 132,44 
+                       L 5,44 
+                       A 4,4 0 0,1 1,40 
+                       L 1,8 
+                       A 4,4 0 0,1 5,4 Z" 
+                    fill="${stemFill}" stroke="${stemStroke}" stroke-width="2"/>
+              <text x="60" y="24" class="text-stem" fill="${item.esCambio ? '#ffffff' : '#1f2937'}">${item.raiz}-</text>
+
+              <!-- Pieza Terminación -->
+              <path d="M 132,4 L 230,4 
+                       A 4,4 0 0,1 234,8 
+                       L 234,40 
+                       A 4,4 0 0,1 230,44 
+                       L 132,44 
+                       A 4,4 0 0,1 128,40 
+                       L 128,30 
+                       C 138,30 138,17 128,17 
+                       L 128,8 
+                       A 4,4 0 0,1 132,4 Z" 
+                    fill="#22c55e" stroke="#15803d" stroke-width="2"/>
+              <text x="180" y="24" class="text-ending text-hidden" id="ending-${i}">${item.terminacion}</text>
+            </svg>
+          </div>
+          <button class="audio-btn" title="Escuchar pronunciación" onclick="speak('${item.pronombre} ${fullWord}')">🔊</button>
+        `;
+        grid.appendChild(row);
+      });
+    }
+
+    function togglePiece(index) {
+      const endingText = document.getElementById(`ending-${index}`);
+      if (endingText) endingText.classList.toggle('text-hidden');
+    }
+
+    function speak(text) {
+      if ('speechSynthesis' in window) {
+        const utterance = new SpeechSynthesisUtterance(text);
+        utterance.lang = 'es-ES';
+        utterance.rate = 0.9;
+        window.speechSynthesis.speak(utterance);
+      }
+    }
+
+    renderDesk();
+    updateWorkspace();
+  </script>
+
+</body>
+</html>
